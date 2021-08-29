@@ -1,15 +1,18 @@
 package io.alienlabs.gichukipaul.travelbriefing;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     MaterialButton btn;
     static RequestQueue requestQueue;
     TextView tx;
+    MaterialButton bntMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         tx = findViewById(R.id.result);
         tx.setVisibility(View.GONE);
         btn = findViewById(R.id.search_btn);
+        bntMap = findViewById(R.id.map);
         btn.setText("SEARCH");
         completeTextView = findViewById(R.id.autoCompleteTextView);
         completeTextView.setSelected(true);
@@ -109,6 +114,18 @@ public class MainActivity extends AppCompatActivity {
 
                             JSONObject currency = response.getJSONObject("currency");
                             currencyName = currency.getString("name");
+
+                            JSONObject maps = response.getJSONObject("maps");
+                            Long lat = maps.getLong("lat");
+                            Long lon = maps.getLong("long");
+                            bntMap.setVisibility(View.VISIBLE);
+                            bntMap.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    openMap(lat, lon);
+                                }
+                            });
+
                             pDialog.dismissWithAnimation();
                             tx.setVisibility(View.VISIBLE);
 
@@ -137,6 +154,16 @@ public class MainActivity extends AppCompatActivity {
 
         requestQueue.add(jsonObjectRequest);
 
+    }
+
+    private void openMap(Long lat, Long lon) {
+        if (lat != null && lon != null) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("geo:" + lat + "," + lon));
+            startActivity(Intent.createChooser(intent, "open  maps"));
+        } else {
+            Toast.makeText(this, "cannot open map", Toast.LENGTH_SHORT).show();
+        }
     }
 
     //check network connectivity
